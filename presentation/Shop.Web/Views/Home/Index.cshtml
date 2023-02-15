@@ -1,0 +1,27 @@
+﻿@model IEnumerable<Shop.Book>
+
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<h1>Список доступых книг:</h1>
+
+<table class="table table-striped">
+    <thead class="thead-dark">
+    <tr>
+      <th scope="col">Название</th>
+      <th scope="col">Автор</th>
+      <th scope="col">Цена</th>
+    </tr>
+    </thead>
+    <body>
+    @foreach (var book in Model)
+    {
+      <tr>
+        <td><a href="@Url.Action("Index","Book",new {id = book.Id})">@book.Title</a></td>
+        <td>@book.Author</td>
+        <td>@book.Price</td>
+      </tr>
+    }
+    </body>
+</table>
