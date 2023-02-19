@@ -3,6 +3,7 @@ namespace Shop;
 public class Order
 {
     public  int Id { get; }
+
     private List<OrderItem> listItems;
 
     public IReadOnlyCollection<OrderItem> Items
@@ -29,19 +30,46 @@ public class Order
         this.listItems = new List<OrderItem>(items);
     }
 
-    public void AddItem(Book book, int count)
+    public OrderItem GetItem (int bookId)
+    {
+        var index =  listItems.FindIndex(x => x.BookId == bookId);
+        if (index == -1)
+            throw new InvalidOperationException("книги с таким Ид не существует");
+
+        return listItems[index];
+    }
+
+    public void AddOrUpdateItem(Book book, int count)
     {
         if (book == null)
             throw new ArgumentNullException(nameof(book),"Попытка передать пустой ссылки");
         
-        var item = listItems.SingleOrDefault(x => x.BookId == book.Id);
+        var index = listItems.FindIndex(x => x.BookId == book.Id);
 
-        if (item == null) // если книги нет
-            listItems.Add(new OrderItem(book.Id, count, book.Price)); //Добавляем
+        if (index == -1) // если книги нет
+        {
+            listItems.Add(new OrderItem(book.Id,count,book.Price)); // добавляем
+        }
         else
         {
-            listItems.Remove(item); //удаляем книгу
-            listItems.Add(new OrderItem(book.Id, item.Count + count, book.Price));
+            listItems[index].Count += count; // меняем количество
         }
     }
+
+    public void RemoveItem (int id)
+    {
+        var index = listItems.FindIndex(item => item.BookId == id);
+
+        if (index == -1)
+            throw new InvalidOperationException("Корзина не содериджит ");
+
+        var item = listItems.SingleOrDefault(x => x.BookId == id);
+
+        if (item == null)
+            throw new InvalidOperationException("Корзина не содержит таких элементов");
+
+        listItems.Remove(item);
+    }
+
+    
 }

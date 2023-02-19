@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Shop.Web.Models;
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 
 namespace Shop.Web.Controllers;
 
@@ -16,34 +18,61 @@ public class OrderController : Controller
 
     public IActionResult Index()
     {
-        if (HttpContext.Session.TryGetCard(out Cart cart)) //получение данных из сессии
-        {
-            var order = _orderRepository.GetById(cart.OrderId);
-            OrderModel model = Map(order);
+        (_, Cart cart) = GetOrderAndCart();
 
-            return View(model);
-        }
+        if (cart == null)
+            return View("Empty");
 
-        return View("Empty");
+        var order = _orderRepository.GetById(cart.OrderId);
+        OrderModel model = Map(order);
+
+        return View(model);
     }
 
-    public OrderModel Map(Order order)
+
+    [HttpPost, ActionName("AddBook")]
+    public IActionResult AddBook(int id, int count)
+    {
+        (Order order, Cart cart) = GetOrderAndCart();
+
+        var book = _bookRepository.GetBookById(id); //получение книги из БД по Ид
+                                                    
+        order.AddOrUpdateItem(book,count);
+
+        SaveOrderAndCart(order, cart);
+        
+        return RedirectToAction("Index","Book", new {id});
+    }
+
+
+    [HttpPost, ActionName("RemoveBook")]
+    public IActionResult RemoveBook(int bookId)
+    {
+        (Order order, Cart cart) = GetOrderAndCart();
+
+        order.RemoveItem(bookId); // удаление элемента
+
+        SaveOrderAndCart(order, cart);
+
+        return RedirectToAction("Index", "Order");
+    }
+    private OrderModel Map(Order order)
     {
         var booksId = order.Items.Select(item => item.BookId);
         var books = _bookRepository.GetBooksById(booksId);
 
         var itemMode = from item in order.Items
-                        join book in books on item.BookId 
-                        equals book.Id 
-                        select new OrderItemModel
-                        {
-                            BookId = book.Id,
-                            Title = book.Title,
-                            Author = book.Author,
-                            Price = item.Price,
-                            Count = item.Count
-                        };
-        
+                       join book in books on item.BookId
+                       equals book.Id
+                       select new OrderItemModel
+                       {
+                           BookId = book.Id,
+                           Title = book.Title,
+                           Author = book.Author,
+                           Price = item.Price,
+                           Count = item.Count
+                       };
+
         return new OrderModel
         {
             Id = order.Id,
@@ -52,33 +81,27 @@ public class OrderController : Controller
             TotalPrice = order.TotalPrice
         };
     }
-
-    [HttpPost, ActionName("Add")]
-    public IActionResult Add(int id, int count)
+    private (Order order, Cart cart) GetOrderAndCart ()
     {
         Order order;
-        Cart cart;
-        
-        if (HttpContext.Session.TryGetCard(out cart)) //получение данных из сессии
+        if (HttpContext.Session.TryGetCart(out Cart cart))
         {
             order = _orderRepository.GetById(cart.OrderId);
         }
         else
         {
-            order = _orderRepository.Create();
+            order = _orderRepository.CreateOrder();
             cart = new Cart(order.Id);
         }
 
-        var book = _bookRepository.GetBookById(id);        
-        order.AddItem(book,count);
-
-        _orderRepository.Update(order);
-
+        return (order, cart);
+    }
+    private void SaveOrderAndCart(Order order, Cart cart)
+    {
+        _orderRepository.UpdateOrder(order);
         cart.TotalCount = order.TotalCount;
         cart.TotalPrice = order.TotalPrice;
 
         HttpContext.Session.Set(cart); //запись данных в сессию
-        
-        return RedirectToAction("Index","Book", new {id});
     }
 }

@@ -2,8 +2,8 @@ namespace Shop
 {
     public interface IOrderRepository
     {
-        Order Create();
+        Order CreateOrder();
         Order GetById(int id);
-        void Update(Order order);
+        void UpdateOrder(Order order);
     }
 }

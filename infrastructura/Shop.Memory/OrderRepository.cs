@@ -8,7 +8,7 @@ namespace Shop.Memory
     public class OrderRepository : IOrderRepository
     {
         private readonly List<Order> orders = new List<Order>();
-        public Order Create()
+        public Order CreateOrder()
         {
             int nextId = orders.Count + 1;
             var order = new Order(nextId, new OrderItem[0]);
@@ -23,7 +23,7 @@ namespace Shop.Memory
             return orders.Find(order => order.Id == id);
         }
 
-        public void Update(Order order)
+        public void UpdateOrder(Order order)
         {
             
         }

@@ -23,7 +23,7 @@ public class BookRepository : IBookRepository
     public List<Book> GetAllBooksByTitleOrAuthor(string title)
     {
         return _books.Where(book => book.Title!.ToUpper().Contains(title.ToUpper()) 
-                                    || book.Author!.ToUpper().Contains(title.ToUpper()))
+                            || book.Author!.ToUpper().Contains(title.ToUpper()))
                     .ToList();
     }
 
@@ -39,10 +39,6 @@ public class BookRepository : IBookRepository
 
     public List<Book> GetBooksById(IEnumerable<int> booksId)
     {
-        /*var foundBooks =  from book in _books  
-                join bookid in booksId on book.Id equals bookid
-                select book;
-                */
         return _books.Where(book => booksId.Contains(book.Id)).ToList();
     }
 }

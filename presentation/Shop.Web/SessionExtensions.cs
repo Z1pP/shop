@@ -25,7 +25,7 @@ public static class SessionExtensions
         }
     }
 
-    public static bool TryGetCard(this ISession session, out Cart? card)
+    public static bool TryGetCart(this ISession session, out Cart? cart)
     {
         if (session.TryGetValue(key, out byte[] buffer))
         {
@@ -36,7 +36,7 @@ public static class SessionExtensions
                 var totalCount = reader.ReadInt32();
                 var totalPrice = reader.ReadDecimal();
 
-                card = new Cart(orderId)
+                cart = new Cart(orderId)
                 {
                     TotalCount = totalCount,
                     TotalPrice = totalPrice
@@ -46,7 +46,7 @@ public static class SessionExtensions
             }
         }
 
-        card = null;
+        cart = null;
         return false;
     }
 }
